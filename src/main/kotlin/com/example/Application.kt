@@ -1,5 +1,6 @@
 package com.example
 
+import com.example.model.AgentController
 import com.example.plugins.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -11,8 +12,9 @@ fun main() {
 }
 
 fun Application.module() {
+    val agentController = AgentController()
     configureHTTP()
-    configureSockets()
+    configureSockets(agentController)
     configureSerialization()
     configureMonitoring()
     configureRouting()
