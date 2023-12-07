@@ -14,7 +14,7 @@ fun main() {
 fun Application.module() {
     val agentController = AgentController()
     configureHTTP()
-    configureSockets(agentController)
+    configureSockets(agentController, this)
     configureSerialization()
     configureMonitoring()
     configureRouting()
