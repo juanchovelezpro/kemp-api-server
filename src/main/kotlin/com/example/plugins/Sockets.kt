@@ -7,8 +7,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import java.time.Duration
 import java.util.*
@@ -22,25 +20,35 @@ fun Application.configureSockets(agentController: AgentController, coroutineScop
     }
     routing {
         webSocket("/link") {
+            val type = call.request.headers["type"]
             val agentName = call.request.headers["name"]
 
-            val agent = agentController.linkAgent(agentName!!, UUID.randomUUID().toString(), this)
-            println("Agent: $agentName connected with sessionId ${agent?.sessionId}")
-            agent?.process(Request("LIST", ""))
+            if (type == "agent") {
+                val agent = agentController.linkAgent(agentName!!, UUID.randomUUID().toString(), this)
+                println("Agent: $agentName connected with sessionId ${agent?.sessionId}")
+                agent?.process(Request("LIST", ""))
+            }
+
 
             val incMsg = launch {
                 incoming.receiveAsFlow().collect { frame ->
-                    if (frame is Frame.Text) {
-                        println("Receving ${frame.readText()} from ${agent?.name} ${agent?.sessionId}")
-                        outgoing.send(Frame.Text("From server... Received ;)"))
+                    if (type == "agent") {
+                        val name = call.request.headers["name"]
+                        val agent = agentController.getAgent(name!!)
+                        if (frame is Frame.Text) {
+                            println("Receving ${frame.readText()} from $name ${agent?.sessionId}")
+                            outgoing.send(Frame.Text("From server... Received ;)"))
+                        }
+                    } else {
                     }
                 }
             }
 
             val outMsg = launch {
                 while (isActive) {
-                    delay(1000L)
-                    outgoing.send(Frame.Text("Testing communication!"))
+                    val request = "list"
+                    delay(5000L)
+                    outgoing.send(Frame.Text(request))
                 }
             }
 

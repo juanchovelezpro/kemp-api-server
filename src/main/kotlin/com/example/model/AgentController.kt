@@ -11,11 +11,14 @@ class AgentController {
         sessionId: String,
         socket: WebSocketSession
     ): Agent? {
-        if(agents.containsKey(agentName)){
-            throw Exception("Cluster/Agent with name $agentName already exists")
+        if (!agents.containsKey(agentName)) {
+            agents[agentName] = Agent(agentName, sessionId, socket)
         }
-        agents[agentName] = Agent(agentName,sessionId,socket)
 
         return agents[agentName]
+    }
+
+    fun getAgent(name: String): Agent? {
+        return agents[name]
     }
 }
